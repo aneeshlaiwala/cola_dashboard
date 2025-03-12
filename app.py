@@ -47,15 +47,20 @@ if income:
 if cluster:
     filtered_df = filtered_df[filtered_df["Cluster_Name"] == cluster]
 
-# Toggle buttons for different analyses
-show_demographics = st.checkbox("Show Demographic Profile")
-show_brand_metrics = st.checkbox("Show Brand Metrics")
-show_attributes = st.checkbox("Show Basic Attribute Scores")
-show_regression = st.checkbox("Show Regression Analysis")
-show_decision_tree = st.checkbox("Show Decision Tree Analysis")
-show_clusters = st.checkbox("Show Cluster Analysis")
+# Button States for Toggle Functionality
+if 'toggle_state' not in st.session_state:
+    st.session_state.toggle_state = {}
 
-if show_demographics:
+def toggle_section(section_name):
+    if section_name in st.session_state.toggle_state:
+        st.session_state.toggle_state[section_name] = not st.session_state.toggle_state[section_name]
+    else:
+        st.session_state.toggle_state[section_name] = True
+
+# Analysis Buttons
+if st.button("Demographic Profile"):
+    toggle_section("demographics")
+if st.session_state.toggle_state.get("demographics", False):
     st.subheader("Age Distribution (Grouped)")
     age_counts = filtered_df['Age_Group'].value_counts(normalize=True).sort_index() * 100
     fig = px.bar(x=age_counts.index, y=age_counts.values, text=age_counts.values.round(2), title='Age Group Distribution (%)')
@@ -69,60 +74,35 @@ if show_demographics:
     fig = px.pie(filtered_df, names='Income_Level', title='Income Level Distribution')
     st.plotly_chart(fig)
 
-if show_brand_metrics:
+if st.button("Brand Metrics"):
+    toggle_section("brand_metrics")
+if st.session_state.toggle_state.get("brand_metrics", False):
     st.subheader("Most Often Used Brand (Percentage)")
     brand_counts = filtered_df['Most_Often_Consumed_Brand'].value_counts(normalize=True) * 100
     fig = px.bar(x=brand_counts.index, y=brand_counts.values.round(2), text=brand_counts.values.round(2), title='Most Often Used Brand')
     st.plotly_chart(fig)
-    
-    st.subheader("Occasions of Buying (Percentage)")
-    occasions_counts = filtered_df['Occasions_of_Buying'].value_counts(normalize=True) * 100
-    fig = px.bar(x=occasions_counts.index, y=occasions_counts.values.round(2), text=occasions_counts.values.round(2), title='Occasions of Buying')
-    st.plotly_chart(fig)
-    
-    st.subheader("Frequency of Consumption (Percentage)")
-    freq_counts = filtered_df['Frequency_of_Consumption'].value_counts(normalize=True) * 100
-    fig = px.bar(x=freq_counts.index, y=freq_counts.values.round(2), text=freq_counts.values.round(2), title='Frequency of Consumption')
-    st.plotly_chart(fig)
 
-if show_attributes:
-    st.subheader("Basic Attribute Scores")
-    attributes = ['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']
-    avg_scores = filtered_df[attributes].mean()
-    fig = px.bar(x=avg_scores.index, y=avg_scores.values, text=avg_scores.values.round(2), title='Basic Attribute Scores')
-    st.plotly_chart(fig)
-    
-    st.subheader("NPS Score Distribution by Age")
-    nps_avg_by_age = filtered_df.groupby('Age_Group')['NPS_Score'].mean()
-    fig = px.bar(x=nps_avg_by_age.index, y=nps_avg_by_age.values, text=nps_avg_by_age.values.round(2), title='NPS Score by Age Group')
-    st.plotly_chart(fig)
-
-if show_regression:
-    st.subheader("Regression Analysis")
-    X = filtered_df[['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']]
-    y = filtered_df['NPS_Score']
-    model = sm.OLS(y, sm.add_constant(X)).fit()
-    st.text(model.summary())
-
-if show_decision_tree:
-    st.subheader("Decision Tree Analysis")
-    X_tree = filtered_df[['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']]
-    y_tree = filtered_df['NPS_Score'].apply(lambda x: 1 if x >= 9 else 0)
-    clf = DecisionTreeClassifier(max_depth=3, random_state=42)
-    clf.fit(X_tree, y_tree)
-    
-    fig, ax = plt.subplots(figsize=(12, 6))
-    tree.plot_tree(clf, feature_names=X_tree.columns, class_names=['Detractor/Passive', 'Promoter'], filled=True, fontsize=8, ax=ax)
-    st.pyplot(fig)
-
-if show_clusters:
-    st.subheader("Customer Segmentation")
-    cluster_counts = filtered_df['Cluster_Name'].value_counts(normalize=True) * 100
-    fig = px.bar(x=cluster_counts.index, y=cluster_counts.values.round(2), text=cluster_counts.values.round(2), title='Cluster Distribution (%)')
-    st.plotly_chart(fig)
-
+# View and Download Full Dataset
 if st.button("View & Download Full Dataset"):
+    toggle_section("dataset")
+if st.session_state.toggle_state.get("dataset", False):
     st.subheader("Full Dataset")
     st.dataframe(filtered_df)
     csv = filtered_df.to_csv(index=False)
     st.download_button(label="Download CSV", data=csv, file_name="cola_survey_data.csv", mime="text/csv")
+
+# Apply and Clear Filters
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("Apply Filter (for Mobile)"):
+        brand = st.selectbox("Select a Brand", [None] + list(df["Brand_Preference"].unique()), key='brand_mobile')
+        gender = st.selectbox("Select Gender", [None] + list(df["Gender"].unique()), key='gender_mobile')
+        income = st.selectbox("Select Income Level", [None] + list(df["Income_Level"].unique()), key='income_mobile')
+        cluster = st.selectbox("Select Cluster", [None] + list(df["Cluster_Name"].unique()), key='cluster_mobile')
+
+with col2:
+    if st.button("Clear Filters"):
+        brand = None
+        gender = None
+        income = None
+        cluster = None
