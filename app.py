@@ -102,3 +102,14 @@ if st.button("View & Download Full Dataset"):
     st.dataframe(filtered_df)
     csv = filtered_df.to_csv(index=False)
     st.download_button(label="Download CSV", data=csv, file_name="cola_survey_data.csv", mime="text/csv")
+
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("Apply Filters"):
+        st.sidebar.write("Use the sidebar filters to refine the data.")
+with col2:
+    if st.button("Clear Filters"):
+        brand = None
+        gender = None
+        income = None
+        cluster = None
