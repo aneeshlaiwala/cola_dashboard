@@ -47,23 +47,16 @@ if income:
 if cluster:
     filtered_df = filtered_df[filtered_df["Cluster_Name"] == cluster]
 
-# Buttons for Analysis Sections
+# Checkbox Toggles for Analysis Sections
 st.subheader("Select Analyses to Display")
-if st.button("Show Demographic Profile"):
-    st.session_state.show_demographics = not st.session_state.get("show_demographics", False)
-if st.button("Show Brand Metrics"):
-    st.session_state.show_brand_metrics = not st.session_state.get("show_brand_metrics", False)
-if st.button("Show Basic Attribute Scores"):
-    st.session_state.show_attributes = not st.session_state.get("show_attributes", False)
-if st.button("Show Regression Analysis"):
-    st.session_state.show_regression = not st.session_state.get("show_regression", False)
-if st.button("Show Decision Tree Analysis"):
-    st.session_state.show_decision_tree = not st.session_state.get("show_decision_tree", False)
-if st.button("Show Cluster Analysis"):
-    st.session_state.show_clusters = not st.session_state.get("show_clusters", False)
+show_demographics = st.checkbox("Show Demographic Profile", value=False)
+show_brand_metrics = st.checkbox("Show Brand Metrics", value=False)
+show_attributes = st.checkbox("Show Basic Attribute Scores", value=False)
+show_regression = st.checkbox("Show Regression Analysis", value=False)
+show_decision_tree = st.checkbox("Show Decision Tree Analysis", value=False)
+show_clusters = st.checkbox("Show Cluster Analysis", value=False)
 
-# Display Sections
-if st.session_state.get("show_demographics", False):
+if show_demographics:
     st.subheader("Age Distribution (Grouped)")
     age_counts = filtered_df['Age_Group'].value_counts(normalize=True).sort_index() * 100
     fig = px.bar(x=age_counts.index, y=age_counts.values, text=age_counts.values.round(2), title='Age Group Distribution (%)')
@@ -77,27 +70,27 @@ if st.session_state.get("show_demographics", False):
     fig = px.pie(filtered_df, names='Income_Level', title='Income Level Distribution')
     st.plotly_chart(fig)
 
-if st.session_state.get("show_brand_metrics", False):
+if show_brand_metrics:
     st.subheader("Most Often Used Brand (Percentage)")
     brand_counts = filtered_df['Most_Often_Consumed_Brand'].value_counts(normalize=True) * 100
     fig = px.bar(x=brand_counts.index, y=brand_counts.values.round(2), text=brand_counts.values.round(2), title='Most Often Used Brand')
     st.plotly_chart(fig)
 
-if st.session_state.get("show_attributes", False):
+if show_attributes:
     st.subheader("Basic Attribute Scores")
     attributes = ['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']
     avg_scores = filtered_df[attributes].mean()
     fig = px.bar(x=avg_scores.index, y=avg_scores.values, text=avg_scores.values.round(2), title='Basic Attribute Scores')
     st.plotly_chart(fig)
 
-if st.session_state.get("show_regression", False):
+if show_regression:
     st.subheader("Regression Analysis")
     X = filtered_df[['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']]
     y = filtered_df['NPS_Score']
     model = sm.OLS(y, sm.add_constant(X)).fit()
     st.text(model.summary())
 
-if st.session_state.get("show_decision_tree", False):
+if show_decision_tree:
     st.subheader("Decision Tree Analysis")
     X_tree = filtered_df[['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']]
     y_tree = filtered_df['NPS_Score'].apply(lambda x: 1 if x >= 9 else 0)
@@ -108,7 +101,7 @@ if st.session_state.get("show_decision_tree", False):
     tree.plot_tree(clf, feature_names=X_tree.columns, class_names=['Detractor/Passive', 'Promoter'], filled=True, fontsize=8, ax=ax)
     st.pyplot(fig)
 
-if st.session_state.get("show_clusters", False):
+if show_clusters:
     st.subheader("Customer Segmentation")
     cluster_counts = filtered_df['Cluster_Name'].value_counts(normalize=True) * 100
     fig = px.bar(x=cluster_counts.index, y=cluster_counts.values.round(2), text=cluster_counts.values.round(2), title='Cluster Distribution (%)')
