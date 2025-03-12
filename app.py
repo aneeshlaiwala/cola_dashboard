@@ -57,18 +57,20 @@ if 'toggle_state' not in st.session_state:
 def toggle_section(section_name):
     st.session_state.toggle_state[section_name] = not st.session_state.toggle_state[section_name]
 
-# Arrange buttons in two columns
+# Arrange buttons in two columns ensuring proper execution
 col1, col2 = st.columns(2)
 button_sections = list(st.session_state.toggle_state.keys())
 
+buttons = {}
 for index, section in enumerate(button_sections):
     key_name = f"button_{index}"  # Unique key for each button
     with col1 if index % 2 == 0 else col2:
-        if st.button(section, key=key_name):
-            toggle_section(section)
+        buttons[section] = st.button(section, key=key_name)
 
-# Display Analysis Sections Based on Toggle State
-for section in button_sections:
+# Ensure proper toggling of sections
+for section, button_pressed in buttons.items():
+    if button_pressed:
+        toggle_section(section)
     if st.session_state.toggle_state[section]:
         st.subheader(section)
         if section == "Demographic Profile":
