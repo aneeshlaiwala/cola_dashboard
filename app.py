@@ -105,8 +105,12 @@ if st.button("View & Download Full Dataset"):
 
 col1, col2 = st.columns(2)
 with col1:
-    if st.button("Apply Filters"):
-        st.sidebar.write("Use the sidebar filters to refine the data.")
+    if st.button("Apply Filter (for Mobile)"):
+        brand = st.selectbox("Select a Brand", [None] + list(df["Brand_Preference"].unique()), key='brand_mobile')
+        gender = st.selectbox("Select Gender", [None] + list(df["Gender"].unique()), key='gender_mobile')
+        income = st.selectbox("Select Income Level", [None] + list(df["Income_Level"].unique()), key='income_mobile')
+        cluster = st.selectbox("Select Cluster", [None] + list(df["Cluster_Name"].unique()), key='cluster_mobile')
+
 with col2:
     if st.button("Clear Filters"):
         brand = None
