@@ -62,46 +62,39 @@ col1, col2 = st.columns(2)
 button_sections = list(st.session_state.toggle_state.keys())
 
 for index, section in enumerate(button_sections):
+    key_name = f"button_{index}"  # Unique key for each button
     with col1 if index % 2 == 0 else col2:
-        if st.button(section, key=section):
+        if st.button(section, key=key_name):
             toggle_section(section)
 
 # Display Analysis Sections Based on Toggle State
-if st.session_state.toggle_state["Demographic Profile"]:
-    st.subheader("Age Distribution (Grouped)")
-    age_counts = filtered_df['Age_Group'].value_counts(normalize=True).sort_index() * 100
-    fig = px.bar(x=age_counts.index, y=age_counts.values, text=age_counts.values.round(2), title='Age Group Distribution (%)')
-    st.plotly_chart(fig)
-    
-    st.subheader("Gender Distribution")
-    fig = px.pie(filtered_df, names='Gender', title='Gender Distribution')
-    st.plotly_chart(fig)
-    
-    st.subheader("Income Level Distribution")
-    fig = px.pie(filtered_df, names='Income_Level', title='Income Level Distribution')
-    st.plotly_chart(fig)
-
-if st.session_state.toggle_state["Brand Metrics"]:
-    st.subheader("Most Often Used Brand (Percentage)")
-    brand_counts = filtered_df['Most_Often_Consumed_Brand'].value_counts(normalize=True) * 100
-    fig = px.bar(x=brand_counts.index, y=brand_counts.values.round(2), text=brand_counts.values.round(2), title='Most Often Used Brand')
-    st.plotly_chart(fig)
-    
-    st.subheader("Occasions of Buying (Percentage)")
-    occasions_counts = filtered_df['Occasions_of_Buying'].value_counts(normalize=True) * 100
-    fig = px.bar(x=occasions_counts.index, y=occasions_counts.values.round(2), text=occasions_counts.values.round(2), title='Occasions of Buying')
-    st.plotly_chart(fig)
-    
-    st.subheader("Frequency of Consumption (Percentage)")
-    freq_counts = filtered_df['Frequency_of_Consumption'].value_counts(normalize=True) * 100
-    fig = px.bar(x=freq_counts.index, y=freq_counts.values.round(2), text=freq_counts.values.round(2), title='Frequency of Consumption')
-    st.plotly_chart(fig)
-
-if st.session_state.toggle_state["View & Download Full Dataset"]:
-    st.subheader("Full Dataset")
-    st.dataframe(filtered_df)
-    csv = filtered_df.to_csv(index=False)
-    st.download_button(label="Download CSV", data=csv, file_name="cola_survey_data.csv", mime="text/csv")
+for section in button_sections:
+    if st.session_state.toggle_state[section]:
+        st.subheader(section)
+        if section == "Demographic Profile":
+            age_counts = filtered_df['Age_Group'].value_counts(normalize=True).sort_index() * 100
+            fig = px.bar(x=age_counts.index, y=age_counts.values, text=age_counts.values.round(2), title='Age Group Distribution (%)')
+            st.plotly_chart(fig)
+            fig = px.pie(filtered_df, names='Gender', title='Gender Distribution')
+            st.plotly_chart(fig)
+            fig = px.pie(filtered_df, names='Income_Level', title='Income Level Distribution')
+            st.plotly_chart(fig)
+        
+        if section == "Brand Metrics":
+            brand_counts = filtered_df['Most_Often_Consumed_Brand'].value_counts(normalize=True) * 100
+            fig = px.bar(x=brand_counts.index, y=brand_counts.values.round(2), text=brand_counts.values.round(2), title='Most Often Used Brand')
+            st.plotly_chart(fig)
+            occasions_counts = filtered_df['Occasions_of_Buying'].value_counts(normalize=True) * 100
+            fig = px.bar(x=occasions_counts.index, y=occasions_counts.values.round(2), text=occasions_counts.values.round(2), title='Occasions of Buying')
+            st.plotly_chart(fig)
+            freq_counts = filtered_df['Frequency_of_Consumption'].value_counts(normalize=True) * 100
+            fig = px.bar(x=freq_counts.index, y=freq_counts.values.round(2), text=freq_counts.values.round(2), title='Frequency of Consumption')
+            st.plotly_chart(fig)
+        
+        if section == "View & Download Full Dataset":
+            st.dataframe(filtered_df)
+            csv = filtered_df.to_csv(index=False)
+            st.download_button(label="Download CSV", data=csv, file_name="cola_survey_data.csv", mime="text/csv")
 
 # Apply and Clear Filters
 col3, col4 = st.columns(2)
