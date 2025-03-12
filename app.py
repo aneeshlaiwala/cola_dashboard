@@ -43,7 +43,20 @@ if income:
 if cluster:
     filtered_df = filtered_df[filtered_df["Cluster_Name"] == cluster]
 
-# Brand Metrics
+# Buttons for different analyses
+if st.button("Demographic Profile"):
+    st.subheader("Gender Distribution")
+    fig = px.pie(filtered_df, names='Gender', title='Gender Distribution')
+    st.plotly_chart(fig)
+    
+    st.subheader("Age Distribution (Grouped)")
+    fig = px.histogram(filtered_df, x='Age_Group', title='Age Group Distribution')
+    st.plotly_chart(fig)
+    
+    st.subheader("Income Level Distribution")
+    fig = px.pie(filtered_df, names='Income_Level', title='Income Level Distribution')
+    st.plotly_chart(fig)
+
 if st.button("Brand Metrics"):
     st.subheader("Most Often Used Brand (Percentage)")
     brand_counts = filtered_df['Most_Often_Consumed_Brand'].value_counts(normalize=True) * 100
@@ -60,14 +73,39 @@ if st.button("Brand Metrics"):
     fig = px.bar(x=freq_counts.index, y=freq_counts.values.round(1), text=freq_counts.values.round(1), title='Frequency of Consumption')
     st.plotly_chart(fig)
 
-# Cluster Analysis
+if st.button("Basic Attribute Scores"):
+    attributes = ['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']
+    avg_scores = filtered_df[attributes].mean()
+    st.bar_chart(avg_scores)
+    
+    st.subheader("NPS Score Distribution by Age")
+    nps_avg_by_age = filtered_df.groupby('Age_Group')['NPS_Score'].mean()
+    st.bar_chart(nps_avg_by_age)
+
+if st.button("Regression Analysis"):
+    st.subheader("Regression Analysis")
+    X = filtered_df[['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']]
+    y = filtered_df['NPS_Score']
+    model = sm.OLS(y, sm.add_constant(X)).fit()
+    st.text(model.summary())
+
+if st.button("Answer Decision Tree"):
+    st.subheader("Decision Tree Analysis")
+    X_tree = filtered_df[['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']]
+    y_tree = filtered_df['NPS_Score'].apply(lambda x: 1 if x >= 9 else 0)
+    clf = DecisionTreeClassifier(max_depth=3, random_state=42)
+    clf.fit(X_tree, y_tree)
+    
+    fig, ax = plt.subplots(figsize=(12, 6))
+    tree.plot_tree(clf, feature_names=X_tree.columns, class_names=['Detractor/Passive', 'Promoter'], filled=True, fontsize=8, ax=ax)
+    st.pyplot(fig)
+
 if st.button("Cluster Analysis"):
     st.subheader("Customer Segmentation")
     cluster_counts = filtered_df['Cluster_Name'].value_counts(normalize=True) * 100
     fig = px.bar(x=cluster_counts.index, y=cluster_counts.values.round(1), text=cluster_counts.values.round(1), title='Cluster Distribution (%)')
     st.plotly_chart(fig)
 
-# View and Download Full Dataset
 if st.button("View & Download Full Dataset"):
     st.subheader("Full Dataset")
     st.dataframe(filtered_df)
