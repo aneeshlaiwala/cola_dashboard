@@ -47,7 +47,7 @@ if income:
 if cluster:
     filtered_df = filtered_df[filtered_df["Cluster_Name"] == cluster]
 
-# Toggle checkboxes for different analyses
+# Checkbox Toggles for Analysis Sections
 st.subheader("Select Analyses to Display")
 show_demographics = st.checkbox("Show Demographic Profile")
 show_brand_metrics = st.checkbox("Show Brand Metrics")
