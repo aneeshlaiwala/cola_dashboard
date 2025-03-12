@@ -71,13 +71,18 @@ if st.button("Regression Analysis"):
     model = sm.OLS(y, sm.add_constant(X)).fit()
     st.text(model.summary())
 
+# Prepare Data for Decision Tree and Cluster Analysis
+X = df[['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating',
+        'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']]
+
 # Decision Tree Analysis
 if st.button("Answer Decision Tree"):
     st.subheader("Decision Tree Analysis")
-    X_tree = X.copy()
+    X_tree = X.copy()  # Ensure X is defined before using it
     y_tree = df['NPS_Score'].apply(lambda x: 1 if x >= 9 else 0)
     clf = DecisionTreeClassifier(max_depth=3, random_state=42)
     clf.fit(X_tree, y_tree)
+    
     fig, ax = plt.subplots(figsize=(12, 6))
     tree.plot_tree(clf, feature_names=X_tree.columns, class_names=['Detractor/Passive', 'Promoter'], filled=True, fontsize=8, ax=ax)
     st.pyplot(fig)
@@ -86,10 +91,11 @@ if st.button("Answer Decision Tree"):
 if st.button("Cluster Analysis"):
     st.subheader("Customer Segmentation")
     kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
-    df['Cluster'] = kmeans.fit_predict(X)
+    df['Cluster'] = kmeans.fit_predict(X)  # X is now defined
+
     fig = px.scatter(df, x='Taste_Rating', y='Fizziness_Rating', color=df['Cluster'].astype(str), title='Cluster Distribution')
     st.plotly_chart(fig)
-    
+
     st.write("### Cluster Descriptions:")
     st.write("1. **Fizz-Lovers** - Customers who prefer high carbonation levels.")
     st.write("2. **Brand-Conscious Consumers** - Customers who prefer strong branding and reputation.")
