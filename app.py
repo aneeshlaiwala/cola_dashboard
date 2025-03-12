@@ -17,6 +17,9 @@ def load_data():
 
 df = load_data()
 
+# Set wide layout for better mobile visibility
+st.set_page_config(layout="wide")
+
 # Streamlit App Title
 st.title("Interactive Cola Consumer Dashboard")
 
@@ -27,10 +30,11 @@ df['Cluster'] = kmeans.fit_predict(X_cluster)
 df['Cluster_Name'] = df['Cluster'].map({0: 'Fizz-Lovers', 1: 'Brand-Conscious Consumers', 2: 'Budget-Friendly Drinkers'})
 
 # Sidebar Filters
-brand = st.sidebar.selectbox("Select a Brand", [None] + list(df["Brand_Preference"].unique()))
-gender = st.sidebar.selectbox("Select Gender", [None] + list(df["Gender"].unique()))
-income = st.sidebar.selectbox("Select Income Level", [None] + list(df["Income_Level"].unique()))
-cluster = st.sidebar.selectbox("Select Cluster", [None] + list(df["Cluster_Name"].unique()))
+with st.sidebar:
+    brand = st.selectbox("Select a Brand", [None] + list(df["Brand_Preference"].unique()))
+    gender = st.selectbox("Select Gender", [None] + list(df["Gender"].unique()))
+    income = st.selectbox("Select Income Level", [None] + list(df["Income_Level"].unique()))
+    cluster = st.selectbox("Select Cluster", [None] + list(df["Cluster_Name"].unique()))
 
 # Filter Data
 filtered_df = df.copy()
@@ -45,42 +49,29 @@ if cluster:
 
 # Buttons for different analyses
 if st.button("Demographic Profile"):
-    st.subheader("Gender Distribution")
-    fig = px.pie(filtered_df, names='Gender', title='Gender Distribution')
+    st.subheader("Age Distribution (Grouped)")
+    age_counts = filtered_df['Age_Group'].value_counts(normalize=True).sort_index() * 100
+    fig = px.bar(x=age_counts.index, y=age_counts.values, text=age_counts.values.round(1), title='Age Group Distribution (%)')
     st.plotly_chart(fig)
     
-    st.subheader("Age Distribution (Grouped)")
-    fig = px.histogram(filtered_df, x='Age_Group', title='Age Group Distribution')
+    st.subheader("Gender Distribution")
+    fig = px.pie(filtered_df, names='Gender', title='Gender Distribution')
     st.plotly_chart(fig)
     
     st.subheader("Income Level Distribution")
     fig = px.pie(filtered_df, names='Income_Level', title='Income Level Distribution')
     st.plotly_chart(fig)
 
-if st.button("Brand Metrics"):
-    st.subheader("Most Often Used Brand (Percentage)")
-    brand_counts = filtered_df['Most_Often_Consumed_Brand'].value_counts(normalize=True) * 100
-    fig = px.bar(x=brand_counts.index, y=brand_counts.values.round(1), text=brand_counts.values.round(1), title='Most Often Used Brand')
-    st.plotly_chart(fig)
-    
-    st.subheader("Occasions of Buying (Percentage)")
-    occasions_counts = filtered_df['Occasions_of_Buying'].value_counts(normalize=True) * 100
-    fig = px.bar(x=occasions_counts.index, y=occasions_counts.values.round(1), text=occasions_counts.values.round(1), title='Occasions of Buying')
-    st.plotly_chart(fig)
-    
-    st.subheader("Frequency of Consumption (Percentage)")
-    freq_counts = filtered_df['Frequency_of_Consumption'].value_counts(normalize=True) * 100
-    fig = px.bar(x=freq_counts.index, y=freq_counts.values.round(1), text=freq_counts.values.round(1), title='Frequency of Consumption')
-    st.plotly_chart(fig)
-
 if st.button("Basic Attribute Scores"):
     attributes = ['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']
     avg_scores = filtered_df[attributes].mean()
-    st.bar_chart(avg_scores)
+    fig = px.bar(x=avg_scores.index, y=avg_scores.values, text=avg_scores.values.round(1), title='Basic Attribute Scores')
+    st.plotly_chart(fig)
     
     st.subheader("NPS Score Distribution by Age")
     nps_avg_by_age = filtered_df.groupby('Age_Group')['NPS_Score'].mean()
-    st.bar_chart(nps_avg_by_age)
+    fig = px.bar(x=nps_avg_by_age.index, y=nps_avg_by_age.values, text=nps_avg_by_age.values.round(1), title='NPS Score by Age Group')
+    st.plotly_chart(fig)
 
 if st.button("Regression Analysis"):
     st.subheader("Regression Analysis")
