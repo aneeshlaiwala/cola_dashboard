@@ -11,7 +11,9 @@ import statsmodels.api as sm
 # Load dataset
 @st.cache_data
 def load_data():
-    return pd.read_csv("cola_survey.csv")
+    df = pd.read_csv("cola_survey.csv")
+    df['Age_Group'] = pd.cut(df['Age'], bins=[18, 25, 35, 45, 55, 65], labels=['18-24', '25-34', '35-44', '45-54', '55-64'])
+    return df
 
 df = load_data()
 
@@ -39,7 +41,6 @@ if st.button("Demographic Profile"):
     st.plotly_chart(fig)
     
     st.subheader("Age Distribution (Grouped)")
-    df['Age_Group'] = pd.cut(df['Age'], bins=[18, 25, 35, 45, 55, 65], labels=['18-24', '25-34', '35-44', '45-54', '55-64'])
     fig = px.histogram(df, x='Age_Group', title='Age Group Distribution')
     st.plotly_chart(fig)
     
@@ -81,13 +82,11 @@ if st.button("Regression Analysis"):
     y = df['NPS_Score']
     model = sm.OLS(y, sm.add_constant(X)).fit()
     st.text(model.summary())
-    st.write("### Summary of Findings:")
-    st.write("- The most significant factors impacting NPS are ...")
 
 # Decision Tree Analysis
 if st.button("Answer Decision Tree"):
     st.subheader("Decision Tree Analysis")
-    X_tree = X.copy()
+    X_tree = df[['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']]
     y_tree = df['NPS_Score'].apply(lambda x: 1 if x >= 9 else 0)
     clf = DecisionTreeClassifier(max_depth=3, random_state=42)
     clf.fit(X_tree, y_tree)
@@ -95,33 +94,21 @@ if st.button("Answer Decision Tree"):
     fig, ax = plt.subplots(figsize=(12, 6))
     tree.plot_tree(clf, feature_names=X_tree.columns, class_names=['Detractor/Passive', 'Promoter'], filled=True, fontsize=8, ax=ax)
     st.pyplot(fig)
-    st.write("### Summary Conclusion:")
-    st.write("- The key factors influencing promoters vs detractors are ...")
 
 # Cluster Analysis
 if st.button("Cluster Analysis"):
     st.subheader("Customer Segmentation")
+    X_cluster = df[['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']]
     kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
-    df['Cluster'] = kmeans.fit_predict(X)
+    df['Cluster'] = kmeans.fit_predict(X_cluster)
     
     cluster_counts = df['Cluster'].value_counts(normalize=True) * 100
     fig = px.bar(x=cluster_counts.index, y=cluster_counts.values, text=cluster_counts.values, title='Cluster Distribution (%)')
     st.plotly_chart(fig)
-    
-    st.write("### Cluster Descriptions & Conclusions:")
-    st.write("1. **Fizz-Lovers** - Customers who prefer high carbonation levels. Conclusion: ...")
-    st.write("2. **Brand-Conscious Consumers** - Customers who prefer strong branding and reputation. Conclusion: ...")
-    st.write("3. **Budget-Friendly Drinkers** - Customers who prioritize price and availability over taste. Conclusion: ...")
 
-# Executive Summary
-if st.button("Executive Summary"):
-    st.write("### Key Findings:")
-    st.write("- The demographic distribution indicates ...")
-    st.write("- The most used brand is ...")
-    st.write("- The key factors impacting NPS are ...")
-    st.write("- Clustering revealed three main segments ...")
-
-# Download Data
-if st.button("Download Full Dataset"):
-    st.subheader("Download the Entire Dataset")
-    st.download_button(label="Download CSV", data=df.to_csv(index=False), file_name="cola_survey_data.csv", mime="text/csv")
+# View and Download Full Dataset
+if st.button("View & Download Full Dataset"):
+    st.subheader("Full Dataset")
+    st.dataframe(df)
+    csv = df.to_csv(index=False)
+    st.download_button(label="Download CSV", data=csv, file_name="cola_survey_data.csv", mime="text/csv")
