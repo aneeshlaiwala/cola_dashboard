@@ -63,7 +63,7 @@ button_sections = list(st.session_state.toggle_state.keys())
 
 for index, section in enumerate(button_sections):
     with col1 if index % 2 == 0 else col2:
-        if st.button(section):
+        if st.button(section, key=section):
             toggle_section(section)
 
 # Display Analysis Sections Based on Toggle State
@@ -90,6 +90,11 @@ if st.session_state.toggle_state["Brand Metrics"]:
     st.subheader("Occasions of Buying (Percentage)")
     occasions_counts = filtered_df['Occasions_of_Buying'].value_counts(normalize=True) * 100
     fig = px.bar(x=occasions_counts.index, y=occasions_counts.values.round(2), text=occasions_counts.values.round(2), title='Occasions of Buying')
+    st.plotly_chart(fig)
+    
+    st.subheader("Frequency of Consumption (Percentage)")
+    freq_counts = filtered_df['Frequency_of_Consumption'].value_counts(normalize=True) * 100
+    fig = px.bar(x=freq_counts.index, y=freq_counts.values.round(2), text=freq_counts.values.round(2), title='Frequency of Consumption')
     st.plotly_chart(fig)
 
 if st.session_state.toggle_state["View & Download Full Dataset"]:
