@@ -54,15 +54,17 @@ if 'toggle_state' not in st.session_state:
 def toggle_section(section_name):
     st.session_state.toggle_state[section_name] = not st.session_state.toggle_state.get(section_name, False)
 
-# Buttons for Analysis Sections
-sections = [
+# Arrange buttons in two columns
+col1, col2 = st.columns(2)
+button_sections = [
     "Demographic Profile", "Brand Metrics", "Basic Attribute Scores", "Regression Analysis", 
     "Decision Tree Analysis", "Cluster Analysis", "View & Download Full Dataset"
 ]
 
-for section in sections:
-    if st.button(section):
-        toggle_section(section)
+for index, section in enumerate(button_sections):
+    with col1 if index % 2 == 0 else col2:
+        if st.button(section):
+            toggle_section(section)
 
 # Display Analysis Sections Based on Toggle State
 if st.session_state.toggle_state.get("Demographic Profile", False):
@@ -89,11 +91,6 @@ if st.session_state.toggle_state.get("Brand Metrics", False):
     occasions_counts = filtered_df['Occasions_of_Buying'].value_counts(normalize=True) * 100
     fig = px.bar(x=occasions_counts.index, y=occasions_counts.values.round(2), text=occasions_counts.values.round(2), title='Occasions of Buying')
     st.plotly_chart(fig)
-    
-    st.subheader("Frequency of Consumption (Percentage)")
-    freq_counts = filtered_df['Frequency_of_Consumption'].value_counts(normalize=True) * 100
-    fig = px.bar(x=freq_counts.index, y=freq_counts.values.round(2), text=freq_counts.values.round(2), title='Frequency of Consumption')
-    st.plotly_chart(fig)
 
 if st.session_state.toggle_state.get("View & Download Full Dataset", False):
     st.subheader("Full Dataset")
@@ -102,14 +99,14 @@ if st.session_state.toggle_state.get("View & Download Full Dataset", False):
     st.download_button(label="Download CSV", data=csv, file_name="cola_survey_data.csv", mime="text/csv")
 
 # Apply and Clear Filters
-col1, col2 = st.columns(2)
-with col1:
+col3, col4 = st.columns(2)
+with col3:
     if st.button("Apply Filter (for Mobile)"):
         brand = st.selectbox("Select a Brand", [None] + list(df["Brand_Preference"].unique()), key='brand_mobile')
         gender = st.selectbox("Select Gender", [None] + list(df["Gender"].unique()), key='gender_mobile')
         income = st.selectbox("Select Income Level", [None] + list(df["Income_Level"].unique()), key='income_mobile')
         cluster = st.selectbox("Select Cluster", [None] + list(df["Cluster_Name"].unique()), key='cluster_mobile')
 
-with col2:
+with col4:
     if st.button("Clear Filters"):
         st.session_state.toggle_state = {}
