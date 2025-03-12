@@ -51,7 +51,7 @@ if cluster:
 if st.button("Demographic Profile"):
     st.subheader("Age Distribution (Grouped)")
     age_counts = filtered_df['Age_Group'].value_counts(normalize=True).sort_index() * 100
-    fig = px.bar(x=age_counts.index, y=age_counts.values, text=age_counts.values.round(1), title='Age Group Distribution (%)')
+    fig = px.bar(x=age_counts.index, y=age_counts.values, text=age_counts.values.round(2), title='Age Group Distribution (%)')
     st.plotly_chart(fig)
     
     st.subheader("Gender Distribution")
@@ -65,12 +65,12 @@ if st.button("Demographic Profile"):
 if st.button("Basic Attribute Scores"):
     attributes = ['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']
     avg_scores = filtered_df[attributes].mean()
-    fig = px.bar(x=avg_scores.index, y=avg_scores.values, text=avg_scores.values.round(1), title='Basic Attribute Scores')
+    fig = px.bar(x=avg_scores.index, y=avg_scores.values, text=avg_scores.values.round(2), title='Basic Attribute Scores')
     st.plotly_chart(fig)
     
     st.subheader("NPS Score Distribution by Age")
     nps_avg_by_age = filtered_df.groupby('Age_Group')['NPS_Score'].mean()
-    fig = px.bar(x=nps_avg_by_age.index, y=nps_avg_by_age.values, text=nps_avg_by_age.values.round(1), title='NPS Score by Age Group')
+    fig = px.bar(x=nps_avg_by_age.index, y=nps_avg_by_age.values, text=nps_avg_by_age.values.round(2), title='NPS Score by Age Group')
     st.plotly_chart(fig)
 
 if st.button("Regression Analysis"):
@@ -94,7 +94,7 @@ if st.button("Answer Decision Tree"):
 if st.button("Cluster Analysis"):
     st.subheader("Customer Segmentation")
     cluster_counts = filtered_df['Cluster_Name'].value_counts(normalize=True) * 100
-    fig = px.bar(x=cluster_counts.index, y=cluster_counts.values.round(1), text=cluster_counts.values.round(1), title='Cluster Distribution (%)')
+    fig = px.bar(x=cluster_counts.index, y=cluster_counts.values.round(2), text=cluster_counts.values.round(2), title='Cluster Distribution (%)')
     st.plotly_chart(fig)
 
 if st.button("View & Download Full Dataset"):
