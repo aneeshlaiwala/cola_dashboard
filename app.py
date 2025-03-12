@@ -19,12 +19,18 @@ df = load_data()
 st.title("Interactive Cola Consumer Dashboard")
 
 # Sidebar Filters
-brand = st.sidebar.selectbox("Select a Brand", df["Brand_Preference"].unique())
-gender = st.sidebar.selectbox("Select Gender", df["Gender"].unique())
-income = st.sidebar.selectbox("Select Income Level", df["Income_Level"].unique())
+brand = st.sidebar.selectbox("Select a Brand", [None] + list(df["Brand_Preference"].unique()))
+gender = st.sidebar.selectbox("Select Gender", [None] + list(df["Gender"].unique()))
+income = st.sidebar.selectbox("Select Income Level", [None] + list(df["Income_Level"].unique()))
 
 # Filter Data
-filtered_df = df[(df["Brand_Preference"] == brand) & (df["Gender"] == gender) & (df["Income_Level"] == income)]
+filtered_df = df.copy()
+if brand:
+    filtered_df = filtered_df[filtered_df["Brand_Preference"] == brand]
+if gender:
+    filtered_df = filtered_df[filtered_df["Gender"] == gender]
+if income:
+    filtered_df = filtered_df[filtered_df["Income_Level"] == income]
 
 # Demographic Profile
 if st.button("Demographic Profile"):
@@ -32,8 +38,9 @@ if st.button("Demographic Profile"):
     fig = px.pie(df, names='Gender', title='Gender Distribution')
     st.plotly_chart(fig)
     
-    st.subheader("Age Distribution")
-    fig = px.histogram(df, x='Age', nbins=10, title='Age Distribution')
+    st.subheader("Age Distribution (Grouped)")
+    df['Age_Group'] = pd.cut(df['Age'], bins=[18, 25, 35, 45, 55, 65], labels=['18-24', '25-34', '35-44', '45-54', '55-64'])
+    fig = px.histogram(df, x='Age_Group', title='Age Group Distribution')
     st.plotly_chart(fig)
     
     st.subheader("Income Level Distribution")
@@ -42,16 +49,19 @@ if st.button("Demographic Profile"):
 
 # Brand Metrics
 if st.button("Brand Metrics"):
-    st.subheader("Most Often Used Brand")
-    fig = px.bar(df, x='Most_Often_Consumed_Brand', title='Most Often Used Brand')
+    st.subheader("Most Often Used Brand (Percentage)")
+    brand_counts = df['Most_Often_Consumed_Brand'].value_counts(normalize=True) * 100
+    fig = px.bar(x=brand_counts.index, y=brand_counts.values, text=brand_counts.values, title='Most Often Used Brand')
     st.plotly_chart(fig)
     
-    st.subheader("Occasions of Buying")
-    fig = px.bar(df, x='Occasions_of_Buying', title='Occasions of Buying')
+    st.subheader("Occasions of Buying (Percentage)")
+    occasions_counts = df['Occasions_of_Buying'].value_counts(normalize=True) * 100
+    fig = px.bar(x=occasions_counts.index, y=occasions_counts.values, text=occasions_counts.values, title='Occasions of Buying')
     st.plotly_chart(fig)
     
-    st.subheader("Frequency of Consumption")
-    fig = px.bar(df, x='Frequency_of_Consumption', title='Frequency of Consumption')
+    st.subheader("Frequency of Consumption (Percentage)")
+    freq_counts = df['Frequency_of_Consumption'].value_counts(normalize=True) * 100
+    fig = px.bar(x=freq_counts.index, y=freq_counts.values, text=freq_counts.values, title='Frequency of Consumption')
     st.plotly_chart(fig)
 
 # Basic Attribute Scores
@@ -59,9 +69,10 @@ if st.button("Basic Attribute Scores"):
     attributes = ['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating', 'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']
     avg_scores = df[attributes].mean()
     st.bar_chart(avg_scores)
-    st.subheader("NPS Score Distribution")
-    fig = px.histogram(df, x='NPS_Score', nbins=10, title='NPS Score Distribution')
-    st.plotly_chart(fig)
+    
+    st.subheader("NPS Score Distribution by Age")
+    nps_avg_by_age = df.groupby('Age_Group')['NPS_Score'].mean()
+    st.bar_chart(nps_avg_by_age)
 
 # Regression Analysis
 if st.button("Regression Analysis"):
@@ -70,15 +81,13 @@ if st.button("Regression Analysis"):
     y = df['NPS_Score']
     model = sm.OLS(y, sm.add_constant(X)).fit()
     st.text(model.summary())
-
-# Prepare Data for Decision Tree and Cluster Analysis
-X = df[['Taste_Rating', 'Price_Rating', 'Packaging_Rating', 'Brand_Reputation_Rating',
-        'Availability_Rating', 'Sweetness_Rating', 'Fizziness_Rating']]
+    st.write("### Summary of Findings:")
+    st.write("- The most significant factors impacting NPS are ...")
 
 # Decision Tree Analysis
 if st.button("Answer Decision Tree"):
     st.subheader("Decision Tree Analysis")
-    X_tree = X.copy()  # Ensure X is defined before using it
+    X_tree = X.copy()
     y_tree = df['NPS_Score'].apply(lambda x: 1 if x >= 9 else 0)
     clf = DecisionTreeClassifier(max_depth=3, random_state=42)
     clf.fit(X_tree, y_tree)
@@ -86,17 +95,33 @@ if st.button("Answer Decision Tree"):
     fig, ax = plt.subplots(figsize=(12, 6))
     tree.plot_tree(clf, feature_names=X_tree.columns, class_names=['Detractor/Passive', 'Promoter'], filled=True, fontsize=8, ax=ax)
     st.pyplot(fig)
+    st.write("### Summary Conclusion:")
+    st.write("- The key factors influencing promoters vs detractors are ...")
 
 # Cluster Analysis
 if st.button("Cluster Analysis"):
     st.subheader("Customer Segmentation")
     kmeans = KMeans(n_clusters=3, random_state=42, n_init=10)
-    df['Cluster'] = kmeans.fit_predict(X)  # X is now defined
-
-    fig = px.scatter(df, x='Taste_Rating', y='Fizziness_Rating', color=df['Cluster'].astype(str), title='Cluster Distribution')
+    df['Cluster'] = kmeans.fit_predict(X)
+    
+    cluster_counts = df['Cluster'].value_counts(normalize=True) * 100
+    fig = px.bar(x=cluster_counts.index, y=cluster_counts.values, text=cluster_counts.values, title='Cluster Distribution (%)')
     st.plotly_chart(fig)
+    
+    st.write("### Cluster Descriptions & Conclusions:")
+    st.write("1. **Fizz-Lovers** - Customers who prefer high carbonation levels. Conclusion: ...")
+    st.write("2. **Brand-Conscious Consumers** - Customers who prefer strong branding and reputation. Conclusion: ...")
+    st.write("3. **Budget-Friendly Drinkers** - Customers who prioritize price and availability over taste. Conclusion: ...")
 
-    st.write("### Cluster Descriptions:")
-    st.write("1. **Fizz-Lovers** - Customers who prefer high carbonation levels.")
-    st.write("2. **Brand-Conscious Consumers** - Customers who prefer strong branding and reputation.")
-    st.write("3. **Budget-Friendly Drinkers** - Customers who prioritize price and availability over taste.")
+# Executive Summary
+if st.button("Executive Summary"):
+    st.write("### Key Findings:")
+    st.write("- The demographic distribution indicates ...")
+    st.write("- The most used brand is ...")
+    st.write("- The key factors impacting NPS are ...")
+    st.write("- Clustering revealed three main segments ...")
+
+# Download Data
+if st.button("Download Full Dataset"):
+    st.subheader("Download the Entire Dataset")
+    st.download_button(label="Download CSV", data=df.to_csv(index=False), file_name="cola_survey_data.csv", mime="text/csv")
