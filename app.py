@@ -74,6 +74,16 @@ if show_brand_metrics:
     brand_counts = filtered_df['Most_Often_Consumed_Brand'].value_counts(normalize=True) * 100
     fig = px.bar(x=brand_counts.index, y=brand_counts.values.round(2), text=brand_counts.values.round(2), title='Most Often Used Brand')
     st.plotly_chart(fig)
+    
+    st.subheader("Occasions of Buying (Percentage)")
+    occasions_counts = filtered_df['Occasions_of_Buying'].value_counts(normalize=True) * 100
+    fig = px.bar(x=occasions_counts.index, y=occasions_counts.values.round(2), text=occasions_counts.values.round(2), title='Occasions of Buying')
+    st.plotly_chart(fig)
+    
+    st.subheader("Frequency of Consumption (Percentage)")
+    freq_counts = filtered_df['Frequency_of_Consumption'].value_counts(normalize=True) * 100
+    fig = px.bar(x=freq_counts.index, y=freq_counts.values.round(2), text=freq_counts.values.round(2), title='Frequency of Consumption')
+    st.plotly_chart(fig)
 
 if show_attributes:
     st.subheader("Basic Attribute Scores")
