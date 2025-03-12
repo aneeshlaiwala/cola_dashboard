@@ -48,6 +48,7 @@ if cluster:
     filtered_df = filtered_df[filtered_df["Cluster_Name"] == cluster]
 
 # Toggle checkboxes for different analyses
+st.subheader("Select Analyses to Display")
 show_demographics = st.checkbox("Show Demographic Profile")
 show_brand_metrics = st.checkbox("Show Brand Metrics")
 show_attributes = st.checkbox("Show Basic Attribute Scores")
